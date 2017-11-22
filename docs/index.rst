@@ -34,6 +34,7 @@ Invenio-Records-REST.
    :maxdepth: 2
 
    installation
+   configuration
    usage
    examplesapp
 
