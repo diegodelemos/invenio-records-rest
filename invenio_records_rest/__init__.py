@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2015 CERN.
+# Copyright (C) 2015, 2016, 2017 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -22,7 +22,23 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""REST API for Records."""
+"""REST API for Records.
+
+Records-REST provides API resources for record operations with permission
+control and different serialization formats.
+
+Features:
+    Create/Delete/Modify/Search records
+    Set permissions
+    Choose response serializers for various bibliographic formats
+
+For further extending the REST API take a look at the guide in invenio-rest.
+
+Initialization
+--------------
+
+
+"""
 
 from __future__ import absolute_import, print_function
 
