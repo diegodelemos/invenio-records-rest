@@ -188,6 +188,7 @@ def app(request, search_class):
     InvenioDB(app)
     InvenioREST(app)
     InvenioRecords(app)
+    InvenioIndexer(app)
     InvenioPIDStore(app)
     search = InvenioSearch(app)
     search.register_mappings(search_class.Meta.index, 'mappings')

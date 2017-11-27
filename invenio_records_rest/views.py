@@ -36,6 +36,7 @@ from flask import Blueprint, abort, current_app, jsonify, make_response, \
 from flask.views import MethodView
 from flask_babelex import gettext as _
 from invenio_db import db
+from invenio_indexer.api import RecordIndexer
 from invenio_pidstore import current_pidstore
 from invenio_pidstore.models import PersistentIdentifier
 from invenio_pidstore.resolver import Resolver
@@ -396,7 +397,8 @@ class RecordsListResource(ContentNegotiatedMethodView):
                  record_loaders=None,
                  search_serializers=None, default_media_type=None,
                  max_result_window=None, search_factory=None,
-                 item_links_factory=None, record_class=None, **kwargs):
+                 item_links_factory=None, record_class=None, indexer=None,
+                 **kwargs):
         """Constructor."""
         super(RecordsListResource, self).__init__(
             method_serializers={
@@ -423,6 +425,7 @@ class RecordsListResource(ContentNegotiatedMethodView):
         self.loaders = record_loaders or \
             current_records_rest.loaders
         self.record_class = record_class or Record
+        self.indexer = indexer or RecordIndexer
 
     def get(self, **kwargs):
         """Search records.
@@ -512,6 +515,9 @@ class RecordsListResource(ContentNegotiatedMethodView):
 
         db.session.commit()
 
+        # Index the record
+        self.indexer().index_by_id(record_uuid)
+
         response = self.make_response(
             pid, record, 201, links_factory=self.item_links_factory)
 
@@ -532,7 +538,7 @@ class RecordResource(ContentNegotiatedMethodView):
                  update_permission_factory=None,
                  delete_permission_factory=None, default_media_type=None,
                  links_factory=None,
-                 loaders=None, search_class=None,
+                 loaders=None, search_class=None, indexer=None,
                  **kwargs):
         """Constructor.
 
@@ -557,6 +563,7 @@ class RecordResource(ContentNegotiatedMethodView):
         self.delete_permission_factory = delete_permission_factory
         self.links_factory = links_factory
         self.loaders = loaders or current_records_rest.loaders
+        self.indexer = indexer or RecordIndexer
 
     @pass_record
     @need_record_permission('delete_permission_factory')
@@ -588,6 +595,7 @@ class RecordResource(ContentNegotiatedMethodView):
             if not rec_pid.is_deleted():
                 rec_pid.delete()
         db.session.commit()
+        self.indexer().delete(record)
 
         return '', 204
 
@@ -650,6 +658,7 @@ class RecordResource(ContentNegotiatedMethodView):
 
         record.commit()
         db.session.commit()
+        self.indexer().index_by_id(record.id)
 
         return self.make_response(
             pid, record, links_factory=self.links_factory)
@@ -688,6 +697,7 @@ class RecordResource(ContentNegotiatedMethodView):
         record.update(data)
         record.commit()
         db.session.commit()
+        self.indexer().index_by_id(record.id)
         return self.make_response(
             pid, record, links_factory=self.links_factory)
 
